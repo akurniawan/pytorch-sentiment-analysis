@@ -4,17 +4,21 @@ import csv
 def get_vocabs(filename):
     vocabs = {}
     categories = {}
-    print("Start loading vocabs")
+    print("Load vocabs and categories")
     with open(filename, "r") as f:
         reader = csv.reader(f)
         for i, r in enumerate(reader):
             if i > 0:
-                for word in r[0].split(" "):
+                for word in r[0]:
                     if not word in vocabs:
                         vocabs[word] = len(vocabs) + 1
                 if not r[1] in categories:
-                    categories[r[1]] = len(categories) + 1
+                    categories[r[1]] = len(categories)
 
     vocabs[''] = 0
-    print("Finish loading vocabs")
+    print("Vocabs:")
+    print(vocabs)
+    print("Categories:")
+    print(categories)
+    print("Vocabs and categories are loaded!")
     return vocabs, categories

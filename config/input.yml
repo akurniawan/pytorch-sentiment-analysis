@@ -1,0 +1,2 @@
+path: "data/train.csv"
+batch_size: 512
