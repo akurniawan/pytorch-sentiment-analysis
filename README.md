@@ -17,9 +17,11 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 
 ## Dataset
 
-You can download the data from [1]. It contains 1,578,627 classified tweets, each row is classified as 1 for positive sentiment and 0 for negative sentiment. Kudos to [2] for providing the link to the data!
+You can download the raw data from [1]. It contains 1,578,627 classified tweets, each row is classified as 1 for positive sentiment and 0 for negative sentiment. Kudos to [2] for providing the link to the data!
+For the alternative, you can also download the data from [4], this contains the same number of data as the original, but I have already cleaned it up a bit
 
 ## Reference
 [1] http://thinknook.com/wp-content/uploads/2012/09/Sentiment-Analysis-Dataset.zip <br />
 [2] http://thinknook.com/twitter-sentiment-analysis-training-corpus-dataset-2012-09-22/ <br />
-[3] https://karpathy.github.io/2015/05/21/rnn-effectiveness/
+[3] https://karpathy.github.io/2015/05/21/rnn-effectiveness/ <br />
+[4] https://s3-ap-southeast-1.amazonaws.com/pytorch-dataset/sentiment-analysis-dataset.csv
