@@ -1,0 +1,11 @@
+nembedding: 300
+clip: 5.0
+cnn:
+  kernel_sizes:
+    - [5, 300]
+    - [5, 256]
+  nkernels: [256, 128]
+rnn:
+  nhidden: 128
+  nlayers: 2
+  dropout: 0.5

@@ -25,21 +25,19 @@ def _get_rnn_last_output(seq_len, output):
     return Variable(last_output.squeeze(1))
 
 
-class ClassifierModel(nn.Module):
-    def __init__(self, hidden_size, num_layers, embedding_dim, dropout,
-                 vocab_size, label_size):
-        super(ClassifierModel, self).__init__()
+class RNNClassifier(nn.Module):
+    def __init__(self, config, vocab_size, label_size):
+        super(RNNClassifier, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.embedding = nn.Embedding(vocab_size, config["nembedding"])
         self.lstm = nn.LSTM(
-            input_size=embedding_dim,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            dropout=dropout,
+            input_size=config["nembedding"],
+            hidden_size=config["nhidden"],
+            num_layers=config["nlayers"],
+            dropout=config["dropout"],
             bidirectional=False)
         self.dense = nn.Linear(
-            in_features=hidden_size, out_features=label_size)
-        self.drop = nn.Dropout()
+            in_features=config["nhidden"], out_features=label_size)
 
     def forward(self, entity_ids, seq_len):
         embedding = self.embedding(entity_ids)
@@ -50,4 +48,43 @@ class ClassifierModel(nn.Module):
         # output from RNN
         last_output = _get_rnn_last_output(seq_len, out.data)
         logits = self.dense(last_output)
+        return logits
+
+
+class CNNRNNClassifier(nn.Module):
+    def __init__(self, config, vocab_size, label_size):
+        super(CNNRNNClassifier, self).__init__()
+        cnn_config = config["cnn"]
+        rnn_config = config["rnn"]
+
+        self.embedding = nn.Embedding(vocab_size, config["nembedding"])
+        self.convs = nn.ModuleList([
+            nn.Conv2d(1, Nk, Ks)
+            for Ks, Nk in zip(cnn_config["kernel_sizes"], cnn_config[
+                "nkernels"])
+        ])
+        self.lstm = nn.LSTM(
+            input_size=cnn_config["nkernels"][-1],
+            hidden_size=rnn_config["nhidden"],
+            num_layers=rnn_config["nlayers"],
+            dropout=rnn_config["dropout"],
+            bidirectional=False)
+        self.dense = nn.Linear(
+            in_features=rnn_config["nhidden"], out_features=label_size)
+
+    def forward(self, entity_ids, seq_len):
+        x = self.embedding(entity_ids)
+
+        # Since we are using conv2d, we need to add extra outer dimension
+        for i, conv in enumerate(self.convs):
+            x = x.unsqueeze(1)
+            # print(x.size())
+            x = F.relu(conv(x)).squeeze()
+            x = x.view(x.size(0), x.size(2), x.size(1))
+            # print(x.size())
+
+        out, _ = self.lstm(x.view(x.size(1), x.size(0), x.size(2)))
+        last_output = out[-1, :, :]
+        logits = self.dense(last_output)
+
         return logits

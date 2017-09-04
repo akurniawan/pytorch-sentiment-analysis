@@ -8,7 +8,7 @@ import torch.optim as optim
 
 from utils import *
 from dataset import LazyTextDataset, DataLoader
-from model import ClassifierModel
+from model import *
 from metrics import *
 
 PARSER = argparse.ArgumentParser(
@@ -48,11 +48,8 @@ if __name__ == "__main__":
         collate_fn=dataset.collate_fn)
 
     # Build model graph
-    classifier_model = ClassifierModel(
-        hidden_size=model_config["nhidden"],
-        num_layers=model_config["nlayers"],
-        embedding_dim=model_config["nembedding"],
-        dropout=model_config["dropout"],
+    classifier_model = CNNRNNClassifier(
+        config=model_config,
         vocab_size=train_dataset.vocab_size,
         label_size=train_dataset.category_size)
     classifier_model = maybe_use_cuda(classifier_model)
