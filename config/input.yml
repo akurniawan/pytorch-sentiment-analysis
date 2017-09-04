@@ -1,2 +1,2 @@
-path: "data/train.csv"
+path: "data/dataset.csv"
 batch_size: 512
