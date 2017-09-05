@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 import numpy as np
 
+from utils import maybe_use_cuda
+
 from torch.autograd import Variable
 
 
@@ -17,7 +19,7 @@ def _get_rnn_last_output(seq_len, output):
     on the sentence length on every batch.
     """
     last_output = torch.index_select(output, 0, seq_len - 1)
-    tmp_indices = torch.LongTensor(range(seq_len.size(0)))
+    tmp_indices = maybe_use_cuda(torch.LongTensor(range(seq_len.size(0))))
     tmp_indices = tmp_indices.view(-1, 1, 1).expand(
         last_output.size(0), 1, last_output.size(2))
     last_output = torch.gather(last_output, 1, tmp_indices)
@@ -30,7 +32,7 @@ class RNNClassifier(nn.Module):
         super(RNNClassifier, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, config["nembedding"])
-        self.lstm = nn.LSTM(
+        self.lstm = nn.GRU(
             input_size=config["nembedding"],
             hidden_size=config["nhidden"],
             num_layers=config["nlayers"],
@@ -78,10 +80,8 @@ class CNNRNNClassifier(nn.Module):
         # Since we are using conv2d, we need to add extra outer dimension
         for i, conv in enumerate(self.convs):
             x = x.unsqueeze(1)
-            # print(x.size())
-            x = F.relu(conv(x)).squeeze()
+            x = F.relu(conv(x)).squeeze(3)
             x = x.view(x.size(0), x.size(2), x.size(1))
-            # print(x.size())
 
         out, _ = self.lstm(x.view(x.size(1), x.size(0), x.size(2)))
         last_output = out[-1, :, :]

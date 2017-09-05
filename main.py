@@ -48,7 +48,7 @@ if __name__ == "__main__":
         collate_fn=dataset.collate_fn)
 
     # Build model graph
-    classifier_model = CNNRNNClassifier(
+    classifier_model = RNNClassifier(
         config=model_config,
         vocab_size=train_dataset.vocab_size,
         label_size=train_dataset.category_size)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 # TODO: try to update collate_fn to use yield
                 entity_ids = maybe_use_cuda(data_bucket[keys])
                 category_ids = maybe_use_cuda(category_bucket[keys])
-                seq_len = seq_len_bucket[keys]
+                seq_len = maybe_use_cuda(seq_len_bucket[keys])
 
                 # Perform model training
                 logits = classifier_model(entity_ids, seq_len)

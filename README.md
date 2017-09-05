@@ -6,7 +6,7 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 
 ## Implementation Details
 
-1. You can choose between LSTM and CNN for the character decoder
+1. You can choose between LSTM and CNN-LSTM for the character decoder
 2. Each batches will be grouped in respect of their lengths
 
 ## Implementation Limitations

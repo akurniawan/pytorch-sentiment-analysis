@@ -25,6 +25,9 @@ def collate_fn(batch):
     labels = [i[1] for i in batch]
     sequences = [(i[0], len(i[0])) for i in batch]
     max_sequence = max(sequences, key=itemgetter(1))[1]
+    # Intentionally this is a hack to handle sentences whose length
+    # are less than 9, because convolutional layer will thrown an error
+    max_sequence = max(9, max_sequence)
     sentence_buckets = defaultdict(list)
     category_buckets = defaultdict(list)
     seq_len_buckets = defaultdict(list)

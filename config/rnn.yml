@@ -1,5 +1,5 @@
-nhidden: 128
-nlayers: 2
+nhidden: 256
+nlayers: 3
 nembedding: 300
-dropout: 0.5
-clip: 5.0
+dropout: 0.2
+clip: 10.0
