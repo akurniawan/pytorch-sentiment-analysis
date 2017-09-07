@@ -11,7 +11,6 @@ def get_vocabs(filename):
             for word in r[0]:
                 if not word in vocabs:
                     vocabs[word] = len(vocabs) + 1
-            print(r)
             if not r[1] in categories:
                 categories[r[1]] = len(categories)
 

@@ -31,8 +31,8 @@ class RNNClassifier(nn.Module):
     def __init__(self, config, vocab_size, label_size):
         super(RNNClassifier, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, config["nembedding"])
-        self.lstm = nn.GRU(
+        self.embedding = nn.Embedding(vocab_size, config["nembedding"], padding_idx=0)
+        self.gru = nn.GRU(
             input_size=config["nembedding"],
             hidden_size=config["nhidden"],
             num_layers=config["nlayers"],
@@ -43,7 +43,7 @@ class RNNClassifier(nn.Module):
 
     def forward(self, entity_ids, seq_len):
         embedding = self.embedding(entity_ids)
-        out, _ = self.lstm(
+        out, _ = self.gru(
             embedding.view(
                 embedding.size(1), embedding.size(0), embedding.size(2)))
         # Since we are doing classification, we only need the last
@@ -59,7 +59,7 @@ class CNNRNNClassifier(nn.Module):
         cnn_config = config["cnn"]
         rnn_config = config["rnn"]
 
-        self.embedding = nn.Embedding(vocab_size, config["nembedding"])
+        self.embedding = nn.Embedding(vocab_size, config["nembedding"], padding_idx=0)
         self.convs = nn.ModuleList([
             nn.Conv2d(1, Nk, Ks)
             for Ks, Nk in zip(cnn_config["kernel_sizes"], cnn_config[

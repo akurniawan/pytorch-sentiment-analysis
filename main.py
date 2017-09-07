@@ -37,6 +37,9 @@ if __name__ == "__main__":
     # Load necessary configs
     model_config = load_yaml(ARGS.model_config)
     input_config = load_yaml(ARGS.input_config)
+    torch.manual_seed(0)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(0)
 
     # Load Dataset
     train_dataset = LazyTextDataset(input_config["path"])
@@ -48,7 +51,7 @@ if __name__ == "__main__":
         collate_fn=dataset.collate_fn)
 
     # Build model graph
-    classifier_model = RNNClassifier(
+    classifier_model = CNNRNNClassifier(
         config=model_config,
         vocab_size=train_dataset.vocab_size,
         label_size=train_dataset.category_size)
