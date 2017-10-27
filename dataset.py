@@ -34,7 +34,6 @@ def collate_fn(batch):
 
     for i, sequence in enumerate(sequences):
         bucket_size = get_bucket(sequence[1])
-        # print(bucket_size, sequence[1])
         if bucket_size == np.inf:
             num_pad = max_sequence - sequence[1]
         else:
@@ -71,7 +70,8 @@ class LazyTextDataset(Dataset):
         csv_line = csv.reader([line])
         extracted_csv = [r for r in csv_line]
         if len(extracted_csv[0]) == 2:
-            sentence, label = extracted_csv[0]
+            # sentence, label = extracted_csv[0]
+            label, sentence = extracted_csv[0]
         else:
             print("Need to fix this data:", extracted_csv[0])
             sentence = "a"

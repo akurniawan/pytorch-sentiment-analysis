@@ -43,9 +43,7 @@ class RNNClassifier(nn.Module):
 
     def forward(self, entity_ids, seq_len):
         embedding = self.embedding(entity_ids)
-        out, _ = self.gru(
-            embedding.view(
-                embedding.size(1), embedding.size(0), embedding.size(2)))
+        out, _ = self.gru(embedding.transpose(1, 0))
         # Since we are doing classification, we only need the last
         # output from RNN
         last_output = _get_rnn_last_output(seq_len, out.data)

@@ -8,11 +8,11 @@ def get_vocabs(filename):
     with open(filename, "r") as f:
         reader = csv.reader(f)
         for i, r in enumerate(reader):
-            for word in r[0]:
+            for word in r[1]:
                 if not word in vocabs:
                     vocabs[word] = len(vocabs) + 1
-            if not r[1] in categories:
-                categories[r[1]] = len(categories)
+            if not r[0] in categories:
+                categories[r[0]] = len(categories)
 
     vocabs[''] = 0
     print("Vocabs:")
