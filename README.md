@@ -16,7 +16,7 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 3. Still no way to update optimizer from config.
 
 ## How to run?
-Below are the list of possible configuration you can put while training the model
+Below are the list of possible configuration you can put for training the model
 ```
 usage: main.py [-h] [--epochs EPOCHS] [--log_every LOG_EVERY] [--input_config INPUT_CONFIG] [--model_config MODEL_CONFIG]
 
