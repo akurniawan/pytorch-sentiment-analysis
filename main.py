@@ -31,6 +31,11 @@ PARSER.add_argument(
     type=str,
     default="config/rnn.yml",
     help="Location of model config")
+PARSER.add_argument(
+    "--model_dir",
+    type=str,
+    default="",
+    help="Location to save the model")
 ARGS = PARSER.parse_args()
 
 if __name__ == "__main__":
@@ -51,7 +56,7 @@ if __name__ == "__main__":
         collate_fn=dataset.collate_fn)
 
     # Build model graph
-    classifier_model = CNNRNNClassifier(
+    classifier_model = RNNClassifier(
         config=model_config,
         vocab_size=train_dataset.vocab_size,
         label_size=train_dataset.category_size)
@@ -65,6 +70,7 @@ if __name__ == "__main__":
             sum_loss_bucket = 0.0
             avg_acc_bucket = 0.0
             total_bucket = 0
+
             for keys in data_bucket.keys():
                 # TODO: try to update collate_fn to use yield
                 entity_ids = maybe_use_cuda(data_bucket[keys])
@@ -97,7 +103,7 @@ if __name__ == "__main__":
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': classifier_model.state_dict(),
-                    'optimizer' : optimizer.state_dict(),
-                })
+                    'optimizer': optimizer.state_dict(),
+                }, filename=ARGS.model_dir)
 
             steps += 1

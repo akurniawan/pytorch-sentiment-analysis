@@ -4,9 +4,10 @@ import torch.nn.functional as F
 
 import numpy as np
 
-from utils import maybe_use_cuda
-
 from torch.autograd import Variable
+from torch.nn.utils.rnn import (pack_padded_sequence, pad_packed_sequence)
+
+from utils import maybe_use_cuda
 
 
 def _get_rnn_last_output(seq_len, output):
@@ -31,7 +32,8 @@ class RNNClassifier(nn.Module):
     def __init__(self, config, vocab_size, label_size):
         super(RNNClassifier, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, config["nembedding"], padding_idx=0)
+        self.embedding = nn.Embedding(
+            vocab_size, config["nembedding"], padding_idx=0)
         self.gru = nn.GRU(
             input_size=config["nembedding"],
             hidden_size=config["nhidden"],
@@ -57,7 +59,8 @@ class CNNRNNClassifier(nn.Module):
         cnn_config = config["cnn"]
         rnn_config = config["rnn"]
 
-        self.embedding = nn.Embedding(vocab_size, config["nembedding"], padding_idx=0)
+        self.embedding = nn.Embedding(
+            vocab_size, config["nembedding"], padding_idx=0)
         self.convs = nn.ModuleList([
             nn.Conv2d(1, Nk, Ks)
             for Ks, Nk in zip(cnn_config["kernel_sizes"], cnn_config[
