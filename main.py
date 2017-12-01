@@ -92,4 +92,12 @@ if __name__ == "__main__":
                       (steps, epoch + 1, sum_loss_bucket.data.numpy()[0],
                        avg_acc_bucket / total_bucket))
 
+                # TODO: Add capability to save model only if new prediction is
+                # better than before
+                save_checkpoint({
+                    'epoch': epoch + 1,
+                    'state_dict': classifier_model.state_dict(),
+                    'optimizer' : optimizer.state_dict(),
+                })
+
             steps += 1
