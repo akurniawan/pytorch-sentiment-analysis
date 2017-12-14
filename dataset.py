@@ -73,9 +73,8 @@ class LazyTextDataset(Dataset):
             # sentence, label = extracted_csv[0]
             label, sentence = extracted_csv[0]
         else:
-            print("Need to fix this data:", extracted_csv[0])
-            sentence = "a"
-            label = "0"
+            raise ValueError("This ros does not have 2 columns, " +
+                             "please fix your data: %s", extracted_csv[0])
         entity_ids = []
         for entity in sentence:
             entity_ids.append(self._vocabs[entity])

@@ -18,10 +18,6 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 ## How to run?
 Below are the list of possible configuration you can put for training the model
 ```
-usage: main.py [-h] [--epochs EPOCHS] [--log_every LOG_EVERY] [--input_config INPUT_CONFIG] [--model_config MODEL_CONFIG]
-
-Twitter Sentiment Analysis with char-rnn
-
 optional arguments:
   -h, --help            show this help message and exit
   --epochs EPOCHS       Number of epochs
@@ -42,8 +38,8 @@ python main.py --input_config config/input.yml --model_config config/cnn_rnn.yml
 
 ## Dataset
 
-You can download the raw data from [1]. It contains 1,578,627 classified tweets, each row is classified as 1 for positive sentiment and 0 for negative sentiment. Kudos to [2] for providing the link to the data!
-For the alternative, you can also download the data from [4], this contains the same number of data as the original, but I have already cleaned it up a bit
+You can download the raw data from [1]. It contains 1,578,627 classified tweets, each row is classified as 1 for positive sentiment and 0 for negative sentiment. Kudos to [2] for providing the link to the data!. However, the data provided by [1] have 4 columns, while on this code we only need the text and the sentiment only, you can convert the data first by grabbing the first and the last columns before feeding into the algorithm.
+For the alternative, you can also download the data from [4], this contains the same number of data as the original, but I have already cleaned it up a bit and you can run the code without any further modification.
 
 ## Reference
 [1] http://thinknook.com/wp-content/uploads/2012/09/Sentiment-Analysis-Dataset.zip <br />
