@@ -45,10 +45,14 @@ class RNNClassifier(nn.Module):
 
     def forward(self, entity_ids, seq_len):
         embedding = self.embedding(entity_ids)
-        out, _ = self.gru(embedding.transpose(1, 0))
+        embedding = pack_padded_sequence(
+            embedding, seq_len.numpy(), batch_first=True)
+        out, _ = self.gru(embedding)
+        out, lengths = pad_packed_sequence(out, batch_first=False)
         # Since we are doing classification, we only need the last
         # output from RNN
-        last_output = _get_rnn_last_output(seq_len, out.data)
+        lengths = [l - 1 for l in lengths]
+        last_output = out[lengths, range(len(lengths))]
         logits = self.dense(last_output)
         return logits
 
@@ -82,9 +86,9 @@ class CNNRNNClassifier(nn.Module):
         for i, conv in enumerate(self.convs):
             x = x.unsqueeze(1)
             x = F.relu(conv(x)).squeeze(3)
-            x = x.view(x.size(0), x.size(2), x.size(1))
+            x = x.transpose(1, 2)
 
-        out, _ = self.lstm(x.view(x.size(1), x.size(0), x.size(2)))
+        out, _ = self.lstm(x.transpose(0, 1))
         last_output = out[-1, :, :]
         logits = self.dense(last_output)
 

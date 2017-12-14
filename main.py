@@ -10,6 +10,7 @@ from utils import *
 from dataset import LazyTextDataset, DataLoader
 from model import *
 from metrics import *
+from pydoc import locate
 
 PARSER = argparse.ArgumentParser(
     description="Twitter Sentiment Analysis with char-rnn")
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         collate_fn=dataset.collate_fn)
 
     # Build model graph
-    classifier_model = RNNClassifier(
+    classifier_model = locate(model_config["model"])(
         config=model_config,
         vocab_size=train_dataset.vocab_size,
         label_size=train_dataset.category_size)

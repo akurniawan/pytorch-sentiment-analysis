@@ -25,9 +25,12 @@ def collate_fn(batch):
     labels = [i[1] for i in batch]
     sequences = [(i[0], len(i[0])) for i in batch]
     max_sequence = max(sequences, key=itemgetter(1))[1]
+    # sort the sequences as a support for pack_padded_sequence
+    sequences = sorted(sequences, key=lambda x: -len(x[0]))
     # Intentionally this is a hack to handle sentences whose length
     # are less than 9, because convolutional layer will thrown an error
     max_sequence = max(9, max_sequence)
+
     sentence_buckets = defaultdict(list)
     category_buckets = defaultdict(list)
     seq_len_buckets = defaultdict(list)
@@ -45,9 +48,8 @@ def collate_fn(batch):
         seq_len_buckets[bucket_size].append(sequence[1])
 
     for k, v in sentence_buckets.items():
-        sentence_buckets[k] = np.array(v)
         sentence_buckets[k] = Variable(
-            torch.LongTensor(sentence_buckets[k]), requires_grad=False)
+            torch.from_numpy(np.array(v)), requires_grad=False)
         category_buckets[k] = Variable(
             torch.LongTensor(category_buckets[k]), requires_grad=False)
         seq_len_buckets[k] = torch.LongTensor(seq_len_buckets[k])

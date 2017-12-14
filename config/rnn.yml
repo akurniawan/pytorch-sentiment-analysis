@@ -1,3 +1,4 @@
+model: "model.RNNClassifier"
 nhidden: 256
 nlayers: 3
 nembedding: 300
