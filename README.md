@@ -45,4 +45,4 @@ For the alternative, you can also download the data from [4], this contains the 
 [1] http://thinknook.com/wp-content/uploads/2012/09/Sentiment-Analysis-Dataset.zip <br />
 [2] http://thinknook.com/twitter-sentiment-analysis-training-corpus-dataset-2012-09-22/ <br />
 [3] https://karpathy.github.io/2015/05/21/rnn-effectiveness/ <br />
-[4] https://s3-ap-southeast-1.amazonaws.com/pytorch-dataset/sentiment-analysis-dataset.csv
+[4] https://drive.google.com/file/d/1Go7FXn4mpIgle1X2mO1xYPDO0ZgWuPI6/view
