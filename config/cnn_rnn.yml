@@ -1,4 +1,4 @@
-model: "model.CNNRNNClassifier"
+model: "model.StackedCRNNClassifier"
 nembedding: 300
 clip: 5.0
 cnn:

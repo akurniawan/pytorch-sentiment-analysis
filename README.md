@@ -18,22 +18,35 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 ## How to run?
 Below are the list of possible configuration you can put for training the model
 ```
+usage: run.py [-h] [--epochs EPOCHS] [--dataset DATASET]
+              [--batch_size BATCH_SIZE] [--log_interval LOG_INTERVAL]
+              [--save_interval SAVE_INTERVAL]
+              [--validation_interval VALIDATION_INTERVAL]
+              [--model_config MODEL_CONFIG] [--model_dir MODEL_DIR]
+
+Twitter Sentiment Analysis with char-rnn
+
 optional arguments:
   -h, --help            show this help message and exit
   --epochs EPOCHS       Number of epochs
-  --log_every LOG_EVERY
-                        For every n_steps will print out the following logs
-                        Steps: [<steps>/<epoch>] 'loss: <loss>, accuracy:
-                        <acc>
-  --input_config INPUT_CONFIG
-                        Location of the training data
+  --dataset DATASET     Path for your training, validation and test dataset.
+                        As this package uses torch text to load the data,
+                        please follow the format by providing the path and
+                        filename without its extension
+  --batch_size BATCH_SIZE
+                        The number of batch size for every step
+  --log_interval LOG_INTERVAL
+  --save_interval SAVE_INTERVAL
+  --validation_interval VALIDATION_INTERVAL
   --model_config MODEL_CONFIG
                         Location of model config
+  --model_dir MODEL_DIR
+                        Location to save the model
 ```
 
 And this is the example of how you can run it
 ```
-python main.py --input_config config/input.yml --model_config config/cnn_rnn.yml --epochs 1000
+python run.py --model_config config/cnn_rnn.yml --epochs 50 --model_dir sentiment-analysis.pt --dataset data/sentiment
 ```
 
 ## Dataset
