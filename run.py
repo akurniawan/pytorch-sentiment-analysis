@@ -41,6 +41,11 @@ PARSER.add_argument("--log_interval", type=int, default=100)
 PARSER.add_argument("--save_interval", type=int, default=500)
 PARSER.add_argument("--validation_interval", type=int, default=500)
 PARSER.add_argument(
+    "--char_level",
+    help="Whether to use the model with "
+    "character level or word level embedding. Specify the option "
+    "if you want to use character level embedding")
+PARSER.add_argument(
     "--model_config",
     type=str,
     default="config/rnn.yml",
@@ -60,14 +65,16 @@ if __name__ == "__main__":
         torch.cuda.manual_seed(0)
         device = None  # Use GPU when available
 
+    if ARGS.char_level:
+        tokenize = lambda s: list(s)
+    else:
+        tokenize = lambda s: s.split()
     # Preparing dataset
     # Get dataset name
     dataset_path = '/'.join(ARGS.dataset.split("/")[:-1])
     dataset_name = ARGS.dataset.split("/")[-1]
     text = data.Field(
-        preprocessing=cleanup_text,
-        include_lengths=True,
-        tokenize=lambda s: list(s))
+        preprocessing=cleanup_text, include_lengths=True, tokenize=tokenize)
     sentiment = data.Field(pad_token=None, unk_token=None)
     train, val = data.TabularDataset.splits(
         dataset_path,

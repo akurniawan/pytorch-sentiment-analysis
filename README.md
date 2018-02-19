@@ -18,14 +18,6 @@ Just assume this is my toy for learning pytorch for the first time (it's easy an
 ## How to run?
 Below are the list of possible configuration you can put for training the model
 ```
-usage: run.py [-h] [--epochs EPOCHS] [--dataset DATASET]
-              [--batch_size BATCH_SIZE] [--log_interval LOG_INTERVAL]
-              [--save_interval SAVE_INTERVAL]
-              [--validation_interval VALIDATION_INTERVAL]
-              [--model_config MODEL_CONFIG] [--model_dir MODEL_DIR]
-
-Twitter Sentiment Analysis with char-rnn
-
 optional arguments:
   -h, --help            show this help message and exit
   --epochs EPOCHS       Number of epochs
@@ -38,6 +30,10 @@ optional arguments:
   --log_interval LOG_INTERVAL
   --save_interval SAVE_INTERVAL
   --validation_interval VALIDATION_INTERVAL
+  --char_level CHAR_LEVEL
+                        Whether to use the model with character level or word
+                        level embedding. Specify the option if you want to use
+                        character level embedding
   --model_config MODEL_CONFIG
                         Location of model config
   --model_dir MODEL_DIR
