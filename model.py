@@ -7,26 +7,6 @@ import numpy as np
 from torch.autograd import Variable
 from torch.nn.utils.rnn import (pack_padded_sequence, pad_packed_sequence)
 
-from utils import maybe_use_cuda
-
-
-def _get_rnn_last_output(seq_len, output):
-    """Get the last output from RNN model. In classification task,
-    it is quite common to only get the last output of RNN and
-    put it into the output layer (softmax). Sometimes using output[-1]
-    to get the last output may be enough. However, since we do padding
-    in every batch, with output[-1] we may end up calculating the wrong
-    output. This function responsible to get the exact last output based
-    on the sentence length on every batch.
-    """
-    last_output = torch.index_select(output, 0, seq_len - 1)
-    tmp_indices = maybe_use_cuda(torch.LongTensor(range(seq_len.size(0))))
-    tmp_indices = tmp_indices.view(-1, 1, 1).expand(
-        last_output.size(0), 1, last_output.size(2))
-    last_output = torch.gather(last_output, 1, tmp_indices)
-
-    return Variable(last_output.squeeze(1))
-
 
 class RNNClassifier(nn.Module):
     def __init__(self, config, vocab_size, label_size):
@@ -45,8 +25,7 @@ class RNNClassifier(nn.Module):
 
     def forward(self, entity_ids, seq_len):
         embedding = self.embedding(entity_ids)
-        embedding = pack_padded_sequence(
-            embedding, seq_len.numpy(), batch_first=True)
+        embedding = pack_padded_sequence(embedding, seq_len, batch_first=False)
         out, _ = self.gru(embedding)
         out, lengths = pad_packed_sequence(out, batch_first=False)
         # Since we are doing classification, we only need the last
@@ -57,18 +36,17 @@ class RNNClassifier(nn.Module):
         return logits
 
 
-class CNNRNNClassifier(nn.Module):
+class StackedCRNNClassifier(nn.Module):
     def __init__(self, config, vocab_size, label_size):
-        super(CNNRNNClassifier, self).__init__()
+        super(StackedCRNNClassifier, self).__init__()
         cnn_config = config["cnn"]
         rnn_config = config["rnn"]
 
         self.embedding = nn.Embedding(
             vocab_size, config["nembedding"], padding_idx=0)
         self.convs = nn.ModuleList([
-            nn.Conv2d(1, Nk, Ks)
-            for Ks, Nk in zip(cnn_config["kernel_sizes"], cnn_config[
-                "nkernels"])
+            nn.Conv2d(1, Nk, Ks) for Ks, Nk in zip(cnn_config["kernel_sizes"],
+                                                   cnn_config["nkernels"])
         ])
         self.lstm = nn.LSTM(
             input_size=cnn_config["nkernels"][-1],
@@ -81,9 +59,10 @@ class CNNRNNClassifier(nn.Module):
 
     def forward(self, entity_ids, seq_len):
         x = self.embedding(entity_ids)
+        x = x.transpose(0, 1)
 
-        # Since we are using conv2d, we need to add extra outer dimension
         for i, conv in enumerate(self.convs):
+            # Since we are using conv2d, we need to add extra outer dimension
             x = x.unsqueeze(1)
             x = F.relu(conv(x)).squeeze(3)
             x = x.transpose(1, 2)
@@ -93,3 +72,8 @@ class CNNRNNClassifier(nn.Module):
         logits = self.dense(last_output)
 
         return logits
+
+
+class InceptionCRNNClassifier(nn.Module):
+    def __init__(self, config, vocab_size, label_size):
+        pass

@@ -1,0 +1,6 @@
+http://download.pytorch.org/whl/torch-0.3.1-cp36-cp36m-macosx_10_7_x86_64.whl
+torchtext==0.2.1
+spacy==2.0.8
+git+https://github.com/pytorch/ignite.git
+scikit-learn==0.19.1
+scipy==1.0.0
