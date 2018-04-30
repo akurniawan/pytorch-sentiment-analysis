@@ -13,8 +13,6 @@ from torchtext import data
 
 from utils import load_yaml
 from model import RNNClassifier, StackedCRNNClassifier
-from hooks import (save_checkpoint_handler, restore_checkpoint_handler,
-                   get_classification_report_handler)
 from handlers import ModelLoader, ModelCheckpoint
 from preprocessing import cleanup_text
 from helper import create_supervised_evaluator
