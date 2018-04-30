@@ -5,11 +5,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.parallel import DataParallel
 
-from ignite.engine import Events
-from ignite.trainer import Trainer
-from ignite.evaluator import Evaluator
-from ignite.handlers import Evaluate
-from ignite.handlers.logging import log_simple_moving_average
+from ignite.engines import Events, Engine
+from ignite.metrics import CategoricalAccuracy, Precision, Recall
+from metrics import Loss
 
 from torchtext import data
 
@@ -17,7 +15,9 @@ from utils import load_yaml
 from model import RNNClassifier, StackedCRNNClassifier
 from hooks import (save_checkpoint_handler, restore_checkpoint_handler,
                    get_classification_report_handler)
+from handlers import ModelLoader, ModelCheckpoint
 from preprocessing import cleanup_text
+from helper import create_supervised_evaluator
 from pydoc import locate
 
 PARSER = argparse.ArgumentParser(
@@ -35,7 +35,7 @@ PARSER.add_argument(
 PARSER.add_argument(
     "--batch_size",
     type=int,
-    default=256,
+    default=16,
     help="The number of batch size for every step")
 PARSER.add_argument("--log_interval", type=int, default=100)
 PARSER.add_argument("--save_interval", type=int, default=500)
@@ -51,7 +51,10 @@ PARSER.add_argument(
     default="config/rnn.yml",
     help="Location of model config")
 PARSER.add_argument(
-    "--model_dir", type=str, default="", help="Location to save the model")
+    "--model_dir",
+    type=str,
+    default="models",
+    help="Location to save the model")
 ARGS = PARSER.parse_args()
 
 if __name__ == "__main__":
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(classifier.parameters())
 
-    def training_update_function(batch):
+    def training_update_function(engine, batch):
         classifier.train()
         optimizer.zero_grad()
         text, y = batch.text, batch.sentiment
@@ -112,9 +115,9 @@ if __name__ == "__main__":
         loss = loss_fn(y_pred, y.squeeze())
         loss.backward()
         optimizer.step()
-        return loss.data.cpu()[0]
+        return loss.cpu()
 
-    def inference_function(batch):
+    def inference_function(engine, batch):
         classifier.eval()
         text, y = batch.text, batch.sentiment
         x = text[0]
@@ -124,39 +127,59 @@ if __name__ == "__main__":
 
         y_pred = classifier(x, seq_len)
         y_pred = softmax(y_pred)
-        return y_pred.data.cpu(), y.data.squeeze().cpu()
+        return y_pred.cpu(), y.squeeze().cpu()
 
-    trainer = Trainer(training_update_function)
-    evaluator = Evaluator(inference_function)
+    trainer = Engine(training_update_function)
+    evaluator = create_supervised_evaluator(
+        model=classifier,
+        inference_fn=inference_function,
+        metrics={
+            "loss": Loss(loss_fn),
+            "acc": CategoricalAccuracy(),
+            "prec": Precision(),
+            "rec": Recall()
+        })
+    checkpoint = ModelCheckpoint(
+        ARGS.model_dir,
+        "sentiment",
+        save_interval=ARGS.save_interval,
+        n_saved=5,
+        create_dir=True,
+        require_empty=False)
+    loader = ModelLoader(classifier, ARGS.model_dir, "sentiment")
+    model_name = model_config["model"].split(".")[1]
 
-    # Put event handlers
-    trainer.add_event_handler(Events.STARTED,
-                              restore_checkpoint_handler(
-                                  classifier, ARGS.model_dir))
-    trainer.add_event_handler(
-        Events.ITERATION_COMPLETED,
-        log_simple_moving_average,
-        window_size=10,
-        should_log=
-        lambda engine: engine.current_iteration % ARGS.log_interval == 0,
-        metric_name="CrossEntropy",
-        logger=print)
-    trainer.add_event_handler(
-        Events.ITERATION_COMPLETED,
-        save_checkpoint_handler(classifier, ARGS.model_dir),
-        should_save=
-        lambda engine: engine.current_iteration % ARGS.save_interval == 0)
-    trainer.add_event_handler(Events.COMPLETED,
-                              save_checkpoint_handler(classifier,
-                                                      ARGS.model_dir))
-    trainer.add_event_handler(Events.ITERATION_COMPLETED,
-                              Evaluate(
-                                  evaluator,
-                                  val_iter,
-                                  iteration_interval=ARGS.validation_interval))
+    # Event handlers
+    trainer.add_event_handler(Events.STARTED, loader, model_name)
+    trainer.add_event_handler(Events.ITERATION_COMPLETED, checkpoint,
+                              {model_name: classifier.module})
+    trainer.add_event_handler(Events.COMPLETED, checkpoint,
+                              {model_name: classifier.module})
 
-    evaluator.add_event_handler(Events.COMPLETED,
-                                get_classification_report_handler())
+    @trainer.on(Events.ITERATION_COMPLETED)
+    def log_training_loss(engine):
+        if engine.state.iteration % ARGS.log_interval == 0:
+            iterations_per_epoch = len(engine.state.dataloader)
+            current_iteration = engine.state.iteration % iterations_per_epoch
+            if current_iteration == 0:
+                current_iteration = iterations_per_epoch
+            print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
+                  "".format(engine.state.epoch, current_iteration,
+                            iterations_per_epoch, engine.state.output))
+
+    @trainer.on(Events.EPOCH_COMPLETED)
+    def log_validation_results(engine):
+        evaluator.run(val_iter)
+        metrics = evaluator.state.metrics
+        avg_loss = metrics["loss"]
+        avg_accuracy = metrics["acc"]
+        print("=====================================")
+        print("Validation Results - Epoch: {}".format(engine.state.epoch))
+        print("Avg accuracy: {:.2f}\nAvg loss: {:.2f}".format(
+            avg_accuracy, avg_loss))
+        print("Precision: {}".format(metrics["prec"].cpu()))
+        print("Recall: {}".format(metrics["rec"].cpu()))
+        print("=====================================")
 
     # Start training
     trainer.run(train_iter, max_epochs=ARGS.epochs)
