@@ -46,7 +46,7 @@ optional arguments:
 
 This is the example of how you can run it
 ```
-python run.py --model_config config/cnn_rnn.yml --epochs 50 --model_dir sentiment-analysis.pt --dataset data/sentiment
+python run.py --model_config config/cnn_rnn.yml --epochs 50 --model_dir models --dataset data/sentiment
 ```
 
 ## Dataset
