@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.parallel import DataParallel
 
-from ignite.engines import Events, Engine
+from ignite.engine import Events, Engine
 from ignite.metrics import CategoricalAccuracy, Precision, Recall
 from metrics import Loss
 

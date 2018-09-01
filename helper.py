@@ -1,4 +1,4 @@
-from ignite.engines import Engine
+from ignite.engine import Engine
 
 
 def create_supervised_evaluator(model, inference_fn, metrics={}, cuda=False):
