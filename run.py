@@ -107,7 +107,7 @@ if __name__ == "__main__":
         text, y = batch.text, batch.sentiment
         x = text[0]
         # seq_len must be in descending order
-        seq_len = text[1].numpy()
+        seq_len = text[1].cpu().numpy()
         seq_len[::-1].sort()
         y_pred = classifier(x, seq_len)
         loss = loss_fn(y_pred, y.squeeze())
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         classifier.eval()
         text, y = batch.text, batch.sentiment
         x = text[0]
-        seq_len = text[1].numpy()
+        seq_len = text[1].cpu().numpy()
         seq_len[::-1].sort()
         softmax = nn.Softmax(dim=1)
 
