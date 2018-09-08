@@ -18,7 +18,8 @@ Not only sentiment analysis, you can also use this project as a sentence classif
 3. Still no way to update optimizer from config.
 
 ## How to run?
-Run `pip install -r requirements.txt`
+1. Install [pytorch](https://pytorch.org/)
+2. Run `pip install -r requirements.txt`
 
 Run `python run.py` with the following options
 ```
