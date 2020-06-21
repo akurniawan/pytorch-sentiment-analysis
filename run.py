@@ -18,10 +18,8 @@ from preprocessing import cleanup_text
 from helper import create_supervised_evaluator
 from pydoc import locate
 
-PARSER = argparse.ArgumentParser(
-    description="Twitter Sentiment Analysis with char-rnn")
-PARSER.add_argument(
-    "--epochs", type=int, default=10000, help="Number of epochs")
+PARSER = argparse.ArgumentParser(description="Twitter Sentiment Analysis with char-rnn")
+PARSER.add_argument("--epochs", type=int, default=10000, help="Number of epochs")
 PARSER.add_argument(
     "--dataset",
     type=str,
@@ -29,12 +27,11 @@ PARSER.add_argument(
     help="""Path for your training, validation and test dataset.
     As this package uses torch text to load the data, please
     follow the format by providing the path and filename without its
-    extension""")
+    extension""",
+)
 PARSER.add_argument(
-    "--batch_size",
-    type=int,
-    default=16,
-    help="The number of batch size for every step")
+    "--batch_size", type=int, default=16, help="The number of batch size for every step"
+)
 PARSER.add_argument("--log_interval", type=int, default=100)
 PARSER.add_argument("--save_interval", type=int, default=500)
 PARSER.add_argument("--validation_interval", type=int, default=500)
@@ -42,17 +39,17 @@ PARSER.add_argument(
     "--char_level",
     help="Whether to use the model with "
     "character level or word level embedding. Specify the option "
-    "if you want to use character level embedding")
+    "if you want to use character level embedding",
+)
 PARSER.add_argument(
     "--model_config",
     type=str,
     default="config/rnn.yml",
-    help="Location of model config")
+    help="Location of model config",
+)
 PARSER.add_argument(
-    "--model_dir",
-    type=str,
-    default="models",
-    help="Location to save the model")
+    "--model_dir", type=str, default="models", help="Location to save the model"
+)
 ARGS = PARSER.parse_args()
 
 if __name__ == "__main__":
@@ -72,17 +69,19 @@ if __name__ == "__main__":
         tokenize = lambda s: s.split()
     # Preparing dataset
     # Get dataset name
-    dataset_path = '/'.join(ARGS.dataset.split("/")[:-1])
+    dataset_path = "/".join(ARGS.dataset.split("/")[:-1])
     dataset_name = ARGS.dataset.split("/")[-1]
     text = data.Field(
-        preprocessing=cleanup_text, include_lengths=True, tokenize=tokenize)
+        preprocessing=cleanup_text, include_lengths=True, tokenize=tokenize
+    )
     sentiment = data.Field(pad_token=None, unk_token=None)
     train, val = data.TabularDataset.splits(
         dataset_path,
         train=dataset_name + ".train",
         validation=dataset_name + ".val",
         format="csv",
-        fields=[("sentiment", sentiment), ("text", text)])
+        fields=[("sentiment", sentiment), ("text", text)],
+    )
     text.build_vocab(train.text, min_freq=1, max_size=80000)
     sentiment.build_vocab(train.sentiment)
     train_iter, val_iter = data.BucketIterator.splits(  # pylint: disable=E0632
@@ -90,13 +89,15 @@ if __name__ == "__main__":
         batch_size=ARGS.batch_size,
         sort_key=lambda x: len(x.text),
         device=device,
-        repeat=False)
+        repeat=False,
+    )
 
     # Build model graph
     classifier = locate(model_config["model"])(
         config=model_config,
         vocab_size=len(text.vocab.itos),
-        label_size=len(sentiment.vocab.itos))
+        label_size=len(sentiment.vocab.itos),
+    )
     classifier = DataParallel(classifier)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(classifier.parameters())
@@ -135,24 +136,28 @@ if __name__ == "__main__":
             "loss": Loss(loss_fn),
             "acc": CategoricalAccuracy(),
             "prec": Precision(),
-            "rec": Recall()
-        })
+            "rec": Recall(),
+        },
+    )
     checkpoint = ModelCheckpoint(
         ARGS.model_dir,
         "sentiment",
         save_interval=ARGS.save_interval,
         n_saved=5,
         create_dir=True,
-        require_empty=False)
+        require_empty=False,
+    )
     loader = ModelLoader(classifier, ARGS.model_dir, "sentiment")
     model_name = model_config["model"].split(".")[1]
 
     # Event handlers
     trainer.add_event_handler(Events.STARTED, loader, model_name)
-    trainer.add_event_handler(Events.ITERATION_COMPLETED, checkpoint,
-                              {model_name: classifier.module})
-    trainer.add_event_handler(Events.COMPLETED, checkpoint,
-                              {model_name: classifier.module})
+    trainer.add_event_handler(
+        Events.ITERATION_COMPLETED, checkpoint, {model_name: classifier.module}
+    )
+    trainer.add_event_handler(
+        Events.COMPLETED, checkpoint, {model_name: classifier.module}
+    )
 
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training_loss(engine):
@@ -161,9 +166,15 @@ if __name__ == "__main__":
             current_iteration = engine.state.iteration % iterations_per_epoch
             if current_iteration == 0:
                 current_iteration = iterations_per_epoch
-            print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
-                  "".format(engine.state.epoch, current_iteration,
-                            iterations_per_epoch, engine.state.output))
+            print(
+                "Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
+                "".format(
+                    engine.state.epoch,
+                    current_iteration,
+                    iterations_per_epoch,
+                    engine.state.output,
+                )
+            )
 
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_validation_results(engine):
@@ -173,8 +184,7 @@ if __name__ == "__main__":
         avg_accuracy = metrics["acc"]
         print("=====================================")
         print("Validation Results - Epoch: {}".format(engine.state.epoch))
-        print("Avg accuracy: {:.2f}\nAvg loss: {:.2f}".format(
-            avg_accuracy, avg_loss))
+        print("Avg accuracy: {:.2f}\nAvg loss: {:.2f}".format(avg_accuracy, avg_loss))
         print("Precision: {}".format(metrics["prec"].cpu()))
         print("Recall: {}".format(metrics["rec"].cpu()))
         print("=====================================")

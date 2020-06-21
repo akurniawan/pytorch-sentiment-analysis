@@ -14,7 +14,7 @@ def get_vocabs(filename):
             if not r[0] in categories:
                 categories[r[0]] = len(categories)
 
-    vocabs[''] = 0
+    vocabs[""] = 0
     print("Vocabs:")
     print(vocabs)
     print("Categories:")

@@ -5,10 +5,7 @@ import logging
 import torch
 import torch.nn as nn
 
-import os
 import tempfile
-
-import torch
 
 
 class ModelCheckpoint(object):
@@ -81,16 +78,18 @@ class ModelCheckpoint(object):
         ['myprefix_mymodel_4.pth', 'myprefix_mymodel_6.pth']
     """
 
-    def __init__(self,
-                 dirname,
-                 filename_prefix,
-                 save_interval=None,
-                 score_function=None,
-                 score_name=None,
-                 n_saved=1,
-                 atomic=True,
-                 require_empty=True,
-                 create_dir=True):
+    def __init__(
+        self,
+        dirname,
+        filename_prefix,
+        save_interval=None,
+        score_function=None,
+        score_name=None,
+        n_saved=1,
+        atomic=True,
+        require_empty=True,
+        create_dir=True,
+    ):
 
         self._dirname = dirname
         self._fname_prefix = filename_prefix
@@ -105,12 +104,14 @@ class ModelCheckpoint(object):
         if not (save_interval is None) ^ (score_function is None):
             raise ValueError(
                 "Exactly one of `save_interval`, or `score_function` "
-                "arguments must be provided.")
+                "arguments must be provided."
+            )
 
         if score_function is None and score_name is not None:
             raise ValueError(
                 "If `score_name` is provided, then `score_function` "
-                "should be also provided")
+                "should be also provided"
+            )
 
         if create_dir:
             if not os.path.exists(dirname):
@@ -118,12 +119,12 @@ class ModelCheckpoint(object):
 
         # Ensure that dirname exists
         if not os.path.exists(dirname):
-            raise ValueError(
-                "Directory path '{}' is not found".format(dirname))
+            raise ValueError("Directory path '{}' is not found".format(dirname))
 
         if require_empty:
             matched = [
-                fname for fname in os.listdir(dirname)
+                fname
+                for fname in os.listdir(dirname)
                 if fname.startswith(self._fname_prefix)
             ]
 
@@ -132,7 +133,8 @@ class ModelCheckpoint(object):
                     "Files prefixed with {} are already present "
                     "in the directory {}. If you want to use this "
                     "directory anyway, pass `require_empty=False`. "
-                    "".format(filename_prefix, dirname))
+                    "".format(filename_prefix, dirname)
+                )
 
     def _save(self, obj, path):
         if not self._atomic:
@@ -167,8 +169,7 @@ class ModelCheckpoint(object):
             if (self._iteration % self._save_interval) != 0:
                 return
 
-        if (len(self._saved) < self._n_saved) or (self._saved[0][0] <
-                                                  priority):
+        if (len(self._saved) < self._n_saved) or (self._saved[0][0] < priority):
             saved_objs = []
 
             suffix = ""
@@ -176,8 +177,9 @@ class ModelCheckpoint(object):
                 suffix = "_{}={:.7}".format(self._score_name, abs(priority))
 
             for name, obj in to_save.items():
-                fname = '{}_{}_{}{}.pth'.format(self._fname_prefix, name,
-                                                self._iteration, suffix)
+                fname = "{}_{}_{}{}.pth".format(
+                    self._fname_prefix, name, self._iteration, suffix
+                )
                 path = os.path.join(self._dirname, fname)
 
                 self._save(obj=obj, path=path)
@@ -208,13 +210,14 @@ class ModelLoader(object):
         if not os.path.exists(dirname):
             self.skip_load = True
             logging.warning(
-                "Dir '{}' is not found, skip restoring model".format(dirname))
+                "Dir '{}' is not found, skip restoring model".format(dirname)
+            )
 
         if len(glob.glob(self._fname + "_*")) == 0:
             self.skip_load = True
             logging.warning(
-                "File '{}-*.pth' is not found, skip restoring model".format(
-                    self._fname))
+                "File '{}-*.pth' is not found, skip restoring model".format(self._fname)
+            )
 
     def _load(self, path):
         if not self.skip_load:
@@ -223,16 +226,16 @@ class ModelLoader(object):
 
             try:
                 if isinstance(self._model, nn.parallel.DataParallel):
-                    self._model.module.load_state_dict(
-                        torch.load(latest_model))
+                    self._model.module.load_state_dict(torch.load(latest_model))
                 else:
                     self._model.load_state_dict(torch.load(latest_model))
                 print("Successfull loading {}!".format(latest_model))
             except Exception as e:
                 logging.exception(
-                    "Something wrong while restoring the model: %s" % str(e))
+                    "Something wrong while restoring the model: %s" % str(e)
+                )
 
     def __call__(self, engine, infix_name):
-        path = self._fname + '_' + infix_name + "_*"
+        path = self._fname + "_" + infix_name + "_*"
 
         self._load(path=path)
